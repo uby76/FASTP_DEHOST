@@ -10,13 +10,13 @@
 #SBATCH --error=/shared/scratch/SCWF00047/legacydata/b.jnl24chv/effluentonly/logs/%x_%j.err
 
 set -uo pipefail
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=/shared/scratch/SCWF00047/legacydata/b.jnl24chv/effluentonly
 INPUT="$ROOT/input/data.txt"
 RUNS="$ROOT/input/run_accessions.txt"
 REPORTS="$ROOT/metadata/ena_reports"
 META="$ROOT/metadata"
 FASTQ="$ROOT/fastq"
-SCRIPTS="$ROOT/scripts"
 STATUS="$ROOT/status"
 mkdir -p "$REPORTS" "$META" "$FASTQ" "$STATUS" "$ROOT/logs"
 
@@ -71,7 +71,7 @@ fetch_report() {
 export -f fetch_report
 xargs -n 1 -P 8 bash -c 'fetch_report "$1"' _ < "$RUNS"
 
-python3 "$SCRIPTS/build_ena_manifest.py" "$REPORTS" "$META" "$FASTQ"
+python3 "$SCRIPT_DIR/build_ena_manifest.py" "$REPORTS" "$META" "$FASTQ"
 manifest_files=$(awk 'END{print NR-1}' "$META/fastq_file_manifest.tsv")
 
 # aria2: parallel files plus segmented transfer, resumable .aria2 state files.
@@ -98,6 +98,6 @@ if [[ "$manifest_files" -gt 0 ]]; then
     --download-result=full || true
 fi
 
-python3 "$SCRIPTS/audit_downloads.py" "$META/fastq_file_manifest.tsv" "$FASTQ" "$META"
+python3 "$SCRIPT_DIR/audit_downloads.py" "$META/fastq_file_manifest.tsv" "$FASTQ" "$META"
 printf 'FINISHED_WITH_SKIP_POLICY\t%s\t%s\n' "${SLURM_JOB_ID:-NA}" "$(date -Is)" > "$STATUS/download_finished.tsv"
 echo "[$(date -Is)] finished: unavailable or failed files were recorded and skipped"

@@ -10,7 +10,7 @@
 #SBATCH --error=/shared/scratch/SCWF00047/legacydata/b.jnl24chv/effluentonly/human_signals_20260806/logs/slurm_%j.err
 
 set -euo pipefail
-SCRIPT_DIR=/shared/scratch/SCWF00047/legacydata/b.jnl24chv/effluentonly/human_signals_20260806/scripts
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$SCRIPT_DIR/config.sh"
 phase=${PHASE:?PHASE required}
 manifest="$ROOT/manifests/${phase}.tsv"
